@@ -13,7 +13,45 @@ const {MongoClient} = require('mongodb')
 
 const app= express()
 
-const client= new MongoClient(process.env.DATABASE_URL)
+// const client= new MongoClient(process.env.DATABASE_URL)
+// const database= client.db('database')
+
+// Using a database instance
+// const database= await mongoose.connect(
+//     process.env.DATABASE_URL, 
+//     {useNewUrlParser:true, useUnifiedTopology: true 
+// })
+
+// const storage= new GridFsStorage({db:database})
+
+const storage = new GridFsStorage({
+    url: process.env.DATABASE_URL,
+    
+    file: (req, file) => {
+      return new Promise((resolve, reject) => { // returns a promise
+        crypto.randomBytes(16, (err, buf) => { // method to generate names
+          if (err) {
+            return reject(err);
+          }
+          const filename = buf.toString('hex') + path.extname(file.originalname); // fileName with extension
+          const fileInfo = {
+            filename: filename,
+            bucketName: 'uploads2' // name of the collection
+          };
+          resolve(fileInfo);
+        });
+      });
+    }
+});
+
+// middleware used below
+const upload = multer({ storage }); // we pass it to this storage engine
+
+app.post('/new', upload.single('uiFile'), (req,res,next)=>{
+    console.log("Sucesss")
+    res.json({ file:req.uiFile })
+    console.log("Sucesss2")
+})
 
 
 // async function run(){
