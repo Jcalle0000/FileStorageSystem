@@ -1,9 +1,10 @@
 const router= require("express").Router();
-const mongo=require('mongodb')
+// const mongo=require('mongodb')
 const Grid=require("gridfs-stream");
-const mongoose=require("mongoose")
+const mongoose=require("mongoose");
+const { json } = require("body-parser");
 
-// /api/pdfs/files
+// /api/pdfs
 router.get("/", async(req,res)=>{
     try{
         // res.send("Were in GET pdfs page")
@@ -12,7 +13,7 @@ router.get("/", async(req,res)=>{
         res.json("Error in rendering PDFS")
     }
 })
-
+// /api/pdfs/files
 router.get("/files", async(req,res)=>{
     try{
         // res.send("were in GET /pdfs/files")
@@ -30,7 +31,8 @@ router.get("/files", async(req,res)=>{
           
           })
 
-        //   gfs.files.find()
+          console.log(conn)
+          console.log( JSON.stringify(gfs) )
 
         // gfs.files.find().toArray(
         //     (err,files)=>{
@@ -42,8 +44,12 @@ router.get("/files", async(req,res)=>{
         //     }
         // )
 
-        res.render('Pdfs/files')
-        // res.send(files)
+        
+        // res.render('Pdfs/files',
+        // {
+        //     mfiles:files
+        // })
+        res.send("files")
     } catch(err){
         res.json("error in gathering files")
     }

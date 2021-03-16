@@ -30,13 +30,15 @@ conn.once('open', ()=>{
 
 app.get('/files', async (req,res)=>{
   // var mFiles;
+
+  // console.log(gfs)
   
   gfs.files.find().toArray(
     (err,files)=>{
       // check if files
       if(!files || files.length===0){
         return res.send("No files detected")
-        console.log("no Files")
+        // console.log("no Files")
       }else {
         // return res.json(files)
         console.log("we Found files")
@@ -50,21 +52,32 @@ app.get('/files', async (req,res)=>{
 
   )// end of array
  
+}) // end of get function
 
+app.get('/files/:filename', (req,res)=>{
+  try{
+    gfs.files.findOne({filename:req.params.filename}, (err,file)=>{
+      if( !file|| file.length==0 ){
+        return res.send("No File Detected")
+      }
+
+      if(file.contentType==='image/jpeg' 
+      || file.contentType==='img/png' || file.contentType==='image/png'
+      || file.contentType==='application/pdf'
+      ){
+        // read output to browser
+        // create readStream
+        const readstream= gfs.createReadStream(file.filename)
+        readstream.pipe(res)
+      }else {
+        res.send("Not an image")
+      }
+    })
+
+  }catch(err){
+    console.log("there was an error in finding the object")
+  }
 })
-
-
-
-// const client= new MongoClient(process.env.DATABASE_URL)
-// const database= client.db('database')
-
-// Using a database instance
-// const database= await mongoose.connect(
-//     process.env.DATABASE_URL, 
-//     {useNewUrlParser:true, useUnifiedTopology: true 
-// })
-
-// const storage= new GridFsStorage({db:database})
 
 const storage = new GridFsStorage({
     url: process.env.DATABASE_URL,
