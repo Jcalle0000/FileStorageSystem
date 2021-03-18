@@ -12,9 +12,9 @@
     
     <% mfiles.forEach( file=>{  %> 
         <label for="">File Object ID:</label> <%= file._id %> <br>
-        <label for="">File Object ID:</label> <%= file._id %> <br>
         <label for="">File Name:</label> <%= file.filename %> <br>
         <label for="">Content Type:</label> <%= file.contentType %> <br>
+        <a href="/files/<%=file.filename%>">View File</a> <br>
         <br>
     <% }) %>
 
