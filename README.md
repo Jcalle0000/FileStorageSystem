@@ -8,8 +8,8 @@ Use MongoDB's gridFsStorage to be able to upload large files of data.
 ### Testing Progress
 <ol>
     <li>Currently images and pdfs have been uploaded </li>
-    <li>A pdf of 117 mb was uploaded but then crashed the server</li>
-    - However the data was still saved into the database
+    <li>A pdf of 150 mb was uploaded successfully</li>
+    <li>GridFS Buckets is what were trying to implement now</li>
 </ol>
 
 ### Rendering
@@ -40,3 +40,14 @@ Use MongoDB's gridFsStorage to be able to upload large files of data.
     <li>Currently Researching<li>
 <ol>
 
+GridStore is Depreciated --> GridFsBucket <br>
+
+- https://mongodb.github.io/node-mongodb-native/3.2/api/GridFSBucket.html
+
+<br>
+
+Bugs Mongo needs to fix:
+<ol>
+    <li> DeprecationWarning: Listening to events on the Db class has been deprecated and will be removed in the next major version. </li>
+    - For using moogoose.connect() - line 20
+</ol>

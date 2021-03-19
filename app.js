@@ -1,127 +1,61 @@
-const express=require("express")
-const path=require("path")
-const crypto=require("crypto")
-const mongoose=require("mongoose")
-const multer=require("multer") // used for uploading files
-const GridFsStorage=require("multer-gridfs-storage") // 
-const Grid=require("gridfs-stream")
-const methodOverride=require("method-override")
-const bodyParser=require("body-parser")
-const dotenv=require('dotenv')
+const mongodb = require('mongodb');
+const dotenv=require('dotenv');
 dotenv.config()
-const {MongoClient} = require('mongodb')
+const express=require("express")
+const Grid=require("gridfs-stream")
+const fs=require('fs') // read,create, write,delete, rename
+const mongoose = require('mongoose'); // needed for gfs
 
 const app= express()
-const pdfRoute=require("./routes/pdf")
 
+const uri = process.env.DATABASE_URL;
+const dbName = 'Files'; 
 
-const conn = mongoose.createConnection(process.env.DATABASE_URL)
+var db = mongodb(process.env.DATABASE_URL,{
+        useNewUrlParser:true,
+        useUnifiedTopology:true
+    }
+)
 
-let gfs
-
-// this code below is depreciated
-conn.once('open', ()=>{
-
-  // Init Stream
-  gfs=Grid(conn.db, mongoose.mongo)
-  gfs.collection('uploads2')
-
-})
-
-app.get('/files', async (req,res)=>{
-  // var mFiles;
-
-  // console.log(gfs)
-  
-  gfs.files.find().toArray(
-    (err,files)=>{
-      // check if files
-      if(!files || files.length===0){
-        return res.send("No files detected")
-        // console.log("no Files")
-      }else {
-        // return res.json(files)
-        console.log("we Found files")
-        // return files;
-        // console.log(files)
-        res.render('Pdfs/files',{
-          mfiles:files
-        })// end or render
-      }// end of else
-    } // end of err,files function 
-
-  )// end of array
- 
-}) // end of get function
-
-app.get('/files/:filename', (req,res)=>{
-  try{
-    gfs.files.findOne({filename:req.params.filename}, (err,file)=>{
-      if( !file|| file.length==0 ){
-        return res.send("No File Detected")
-      }
-
-      if(file.contentType==='image/jpeg' 
-      || file.contentType==='img/png' || file.contentType==='image/png'
-      || file.contentType==='application/pdf'
-      ){
-        // read output to browser
-        // create readStream
-        const readstream= gfs.createReadStream(file.filename)
-        readstream.pipe(res)
-      }else {
-        res.send("Not an image")
-      }
+// causes depreciation warning - that should be ignored
+var database = mongoose.connect(process.env.DATABASE_URL,
+    {
+        useNewUrlParser:true,
+        useUnifiedTopology:true
     })
 
-  }catch(err){
-    console.log("there was an error in finding the object")
-  }
-})
+//Routes
+const bucketRoute= require("./routes/bucketRoute");
+const { fileLoader } = require('ejs');
 
-const storage = new GridFsStorage({
-    url: process.env.DATABASE_URL,
-    
-    file: (req, file) => {
-      return new Promise((resolve, reject) => { // returns a promise
-        crypto.randomBytes(16, (err, buf) => { // method to generate names
-          if (err) {
-            return reject(err);
-          }
-          const filename = buf.toString('hex') + path.extname(file.originalname); // fileName with extension
-          const fileInfo = {
-            filename: filename,
-            bucketName: 'uploads2' // name of the collection
-          };
-          resolve(fileInfo);
-        });
-      });
+app.use( "/api/buckets", bucketRoute )
+
+// localhost:5000/buckets
+app.get('/buckets', async(req,res)=>{
+    try{
+        // var db= new mongodb.Db(process.DATABASE_URL)
+        var gfs = Grid(db,mongodb) // db is has the database_url
+        // console.log(gfs)
+
+       var gridFsBucket= new mongoose.mongo.GridFSBucket(
+           mongoose.connection.db,
+           { bucketName:'uploads2'}
+       )
+
+       console.log(gridFsBucket)
+       gfs.collection('uploads2.files') // this is breaking it
+       
+        console.log("Success")
+
+
     }
-});
+    catch(err){
+        console.log("There was an error with buckets")
+    }
+} )
 
-// middleware used below
-const upload = multer({ storage }); // we pass it to this storage engine
-
-app.post('/new', upload.single('uiFile'), (req,res,next)=>{
-    console.log("Sucesss")
-    res.json({ file:req.uiFile })
-    console.log("Sucesss2")
-})
-
-
-
-// MiddleWare
-app.use(bodyParser.json() )
-app.use(methodOverride('_method') )
-app.use("/api/pdfs", pdfRoute)
-
-app.set('view engine', 'ejs')
-app.get('/',(req,res)=>{
-    res.render('index')
-})
-
-const port=5000;
+const port=5000; 
 
 app.listen(
-    port, ()=>console.log(`On port ${port}` ) 
+        port, ()=>console.log(`On port ${port}` ) 
 )
